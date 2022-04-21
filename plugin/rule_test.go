@@ -16,12 +16,12 @@ func TestRule_New(t *testing.T) {
 	}{
 		{
 			name:          "period_default",
-			inputValue:    "* * 9-17 * * mon-fri *",
+			inputValue:    "* 9-17 * * mon-fri",
 			expectedCount: 1,
 		},
 		{
 			name:          "period_valid_count",
-			inputValue:    "* * 9-17 * * mon-fri *;5",
+			inputValue:    "* 9-17 * * mon-fri;5",
 			expectedCount: 5,
 		},
 		{
@@ -31,7 +31,7 @@ func TestRule_New(t *testing.T) {
 		},
 		{
 			name:          "period_invalid_count",
-			inputValue:    "* * 9-17 * * mon-fri *;invalid",
+			inputValue:    "* 9-17 * * mon-fri;invalid",
 			expectedError: true,
 		},
 	}
