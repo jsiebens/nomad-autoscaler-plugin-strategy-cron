@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/cronexpr"
+	"github.com/robfig/cron/v3"
 )
 
 func parsePeriodRule(key, value, separator string) (*Rule, error) {
@@ -15,7 +15,8 @@ func parsePeriodRule(key, value, separator string) (*Rule, error) {
 	entries := strings.Split(value, separator)
 
 	period := strings.TrimSpace(entries[0])
-	expr, err := cronexpr.Parse(period)
+	parser := cron.NewParser(cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow)
+	expr, err := parser.Parse(period)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +46,7 @@ func parsePeriodRule(key, value, separator string) (*Rule, error) {
 }
 
 type Rule struct {
-	expr     *cronexpr.Expression
+	expr     cron.Schedule
 	period   string
 	key      string
 	count    int64
@@ -55,7 +56,7 @@ type Rule struct {
 func (t *Rule) InPeriod(now time.Time) bool {
 	nextIn := t.expr.Next(now)
 	timeSince := now.Sub(nextIn)
-	if -time.Second <= timeSince && timeSince <= time.Second {
+	if -time.Minute <= timeSince && timeSince <= time.Minute {
 		return true
 	}
 

@@ -57,9 +57,9 @@ func TestStrategyPlugin_calculateTargetCount(t *testing.T) {
 
 	config := map[string]string{
 		"count":           "1",
-		"period_business": "* * 9-17 * * mon-fri * -> 10",
-		"period_mon_100":  "* * 9-17 * * mon * -> 7",
-		"period_sat":      "* * * * * sat * -> 5",
+		"period_business": "* 9-17 * * mon-fri -> 10",
+		"period_mon_100":  "* 9-17 * * mon -> 7",
+		"period_sat":      "* * * * sat -> 5",
 	}
 
 	testCases := []struct {
