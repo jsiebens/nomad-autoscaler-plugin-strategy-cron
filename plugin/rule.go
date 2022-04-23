@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/cronexpr"
 )
 
-func parsePeriodRule(key, value, separator string) (*Rule, error) {
+func parsePeriodRule(key, value, separator string, expressionMap map[string]int64) (*Rule, error) {
 	var count int64 = 1
 	var priority int64 = 0
 
@@ -23,7 +23,11 @@ func parsePeriodRule(key, value, separator string) (*Rule, error) {
 	if len(entries) > 1 {
 		v, err := strconv.ParseInt(strings.TrimSpace(entries[1]), 10, 64)
 		if err != nil {
-			return nil, err
+			if exprValue, ok := expressionMap[strings.TrimSpace(entries[1])]; ok {
+				v = exprValue
+			} else {
+				return nil, err
+			}
 		}
 		count = v
 	}

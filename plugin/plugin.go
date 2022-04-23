@@ -24,8 +24,9 @@ const (
 	configKeySeparator = "separator"
 
 	// These are the keys read from the RunRequest.Config map.
-	runConfigKeyCount        = "count"
-	runConfigKeyPeriodPrefix = "period_"
+	runConfigKeyCount            = "count"
+	runConfigKeyPeriodPrefix     = "period_"
+	runConfigKeyExpressionPrefix = "expression_"
 )
 
 var (
@@ -81,7 +82,7 @@ func (s *StrategyPlugin) SetConfig(config map[string]string) error {
 
 // Run satisfies the Run function on the strategy.Strategy interface.
 func (s *StrategyPlugin) Run(eval *sdk.ScalingCheckEvaluation, count int64) (*sdk.ScalingCheckEvaluation, error) {
-	targetCount, err := s.calculateTargetCount(eval.Check.Strategy.Config, time.Now)
+	targetCount, err := s.calculateTargetCount(eval.Check.Strategy.Config, count, eval.Metrics, time.Now)
 	if err != nil {
 		return eval, err
 	}
@@ -116,11 +117,25 @@ func (s *StrategyPlugin) calculateDirection(count, target int64) sdk.ScaleDirect
 	return sdk.ScaleDirectionDown
 }
 
-func (s *StrategyPlugin) calculateTargetCount(config map[string]string, timer func() time.Time) (int64, error) {
+func (s *StrategyPlugin) calculateTargetCount(config map[string]string, count int64, metrics sdk.TimestampedMetrics, timer func() time.Time) (int64, error) {
 	now := timer()
 
 	var value int64 = 1
 	var rules []*Rule
+
+	expressionMap := make(map[string]int64)
+	// 1st pass, pick out the expressions
+	for k, element := range config {
+		if strings.HasPrefix(k, runConfigKeyExpressionPrefix) && len(k) > len(runConfigKeyExpressionPrefix) {
+			exprName := k[len(runConfigKeyExpressionPrefix):]
+			val, err := evaluateExpression(element, count, metrics)
+			if err != nil {
+				s.logger.Warn("could not evaluate expression", "expression", element, "error", err)
+				continue
+			}
+			expressionMap[exprName] = val
+		}
+	}
 
 	for k, element := range config {
 		if k == runConfigKeyCount {
@@ -132,7 +147,7 @@ func (s *StrategyPlugin) calculateTargetCount(config map[string]string, timer fu
 		}
 
 		if strings.HasPrefix(k, runConfigKeyPeriodPrefix) {
-			rule, err := parsePeriodRule(k, element, s.separator)
+			rule, err := parsePeriodRule(k, element, s.separator, expressionMap)
 			if err != nil {
 				return -1, err
 			}
