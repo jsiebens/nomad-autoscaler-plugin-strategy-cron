@@ -36,8 +36,9 @@ func TestRule_New(t *testing.T) {
 		},
 	}
 
+	exprMap := make(map[string]int64)
 	for _, tc := range testCases {
-		rule, err := parsePeriodRule(tc.name, tc.inputValue, ";")
+		rule, err := parsePeriodRule(tc.name, tc.inputValue, ";", exprMap)
 		if tc.expectedError {
 			assert.NotNil(t, err)
 			assert.Nil(t, rule)
@@ -49,10 +50,11 @@ func TestRule_New(t *testing.T) {
 }
 
 func TestRule_Sort(t *testing.T) {
-	rule1, _ := parsePeriodRule("a", "* 1 * * *;1", ";")
-	rule2, _ := parsePeriodRule("b", "* 1 * * *;6", ";")
-	rule3, _ := parsePeriodRule("c", "* 1 * * *;5", ";")
-	rule4, _ := parsePeriodRule("c_100", "* 1 * * *;4", ";")
+	exprMap := make(map[string]int64)
+	rule1, _ := parsePeriodRule("a", "* 1 * * *;1", ";", exprMap)
+	rule2, _ := parsePeriodRule("b", "* 1 * * *;6", ";", exprMap)
+	rule3, _ := parsePeriodRule("c", "* 1 * * *;5", ";", exprMap)
+	rule4, _ := parsePeriodRule("c_100", "* 1 * * *;4", ";", exprMap)
 
 	rules := []*Rule{
 		rule1,

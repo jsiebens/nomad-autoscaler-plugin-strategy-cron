@@ -59,31 +59,38 @@ func TestStrategyPlugin_calculateTargetCount(t *testing.T) {
 		"count":           "1",
 		"period_business": "* * 9-17 * * mon-fri * -> 10",
 		"period_mon_100":  "* * 9-17 * * mon * -> 7",
-		"period_sat":      "* * * * * sat * -> 5",
+		"period_sat":      "* * * * * sat * -> a",
+		"expression_a":    "Count - 1",
 	}
 
 	testCases := []struct {
 		now           time.Time
+		metrics       sdk.TimestampedMetrics
 		expectedCount int64
 	}{
 		{
 			now:           time.Date(2021, time.March, 30, 8, 0, 0, 0, location),
+			metrics:       sdk.TimestampedMetrics{{Value: 7}},
 			expectedCount: 1,
 		},
 		{
 			now:           time.Date(2021, time.March, 30, 10, 0, 0, 0, location),
+			metrics:       sdk.TimestampedMetrics{{Value: 7}},
 			expectedCount: 10,
 		},
 		{
 			now:           time.Date(2021, time.March, 29, 10, 0, 0, 0, location),
+			metrics:       sdk.TimestampedMetrics{{Value: 7}},
 			expectedCount: 7,
 		},
 		{
 			now:           time.Date(2021, time.March, 28, 10, 0, 0, 0, location),
+			metrics:       sdk.TimestampedMetrics{{Value: 7}},
 			expectedCount: 1,
 		},
 		{
 			now:           time.Date(2021, time.March, 27, 10, 0, 0, 0, location),
+			metrics:       sdk.TimestampedMetrics{{Value: 7}},
 			expectedCount: 5,
 		},
 	}
@@ -93,7 +100,7 @@ func TestStrategyPlugin_calculateTargetCount(t *testing.T) {
 			separator: defaultSeparator,
 			logger:    hclog.NewNullLogger(),
 		}
-		count, _ := s.calculateTargetCount(config, fromTime(tc.now))
+		count, _ := s.calculateTargetCount(config, 6, tc.metrics, fromTime(tc.now))
 		assert.Equal(t, tc.expectedCount, count)
 	}
 }
